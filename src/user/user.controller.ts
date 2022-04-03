@@ -1,13 +1,19 @@
 import {Body, Controller, Get, Param, Post, Req} from '@nestjs/common';
 import {UserService} from "./user.service";
+import {User} from "./user.entity";
 
 @Controller('user')
 export class UserController {
     constructor(private userService: UserService) {}
 
+    @Get()
+    readUsers(@Req() req): Promise<User[]> {
+        return this.userService.readUsers(req);
+    }
+
     @Get(':id')
-    findAllUser(@Param('id') id: string) {
-        return this.userService.findUserById(Number(id));
+    readOneUser(@Req() req, @Param('id') id: string): Promise<User> {
+        return this.userService.readOneUser(req, Number(id));
     }
 
     @Post('/login')

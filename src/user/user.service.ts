@@ -1,4 +1,4 @@
-import {Injectable, UnauthorizedException} from '@nestjs/common';
+import {BadRequestException, Injectable, Req, UnauthorizedException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {User} from "./user.entity";
 import {Repository} from "typeorm";
@@ -20,6 +20,28 @@ export class UserService {
         return this.userRepository.findOne({
             where: {email: email}
         });
+    }
+
+    async readOneUser(@Req() req, id: number): Promise<User> {
+        let user = await this.findUserById(id);
+        if (user) {
+            if (user.email !== req.user.email) {
+                delete user.email;
+            }
+            return user;
+        } else {
+            throw new BadRequestException();
+        }
+    }
+
+    async readUsers(@Req() req): Promise<User[]> {
+        let users = await this.userRepository.find();
+        users.forEach((user) => {
+            if (user.email !== req.user.email) {
+                delete user.email;
+            }
+        })
+        return users;
     }
 
     async login(email: string, password: string) {
