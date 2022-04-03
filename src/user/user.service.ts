@@ -10,14 +10,20 @@ export class UserService {
         @InjectRepository(User) private userRepository: Repository<User>
     ) {}
 
-    findUser(email: string): Promise<User> {
+    findUserById(id: number): Promise<User> {
+        return this.userRepository.findOne({
+            where: {user_id: id}
+        });
+    }
+
+    findUserByEmail(email: string): Promise<User> {
         return this.userRepository.findOne({
             where: {email: email}
         });
     }
 
     async login(email: string, password: string) {
-        const user = await this.findUser(email);
+        const user = await this.findUserByEmail(email);
         if (user && password === user.password) {
             const access_token = jwt.sign({
                 email: email,
@@ -45,7 +51,7 @@ export class UserService {
     async refresh(token: string) {
         try {
             const user = jwt.verify(token, 'secret');
-            const user_info = await this.findUser(user.email);
+            const user_info = await this.findUserByEmail(user.email);
             const access_token = jwt.sign({
                 email: user.email,
                 user_id: user_info.user_id,
