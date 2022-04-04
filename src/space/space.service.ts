@@ -22,7 +22,9 @@ export class SpaceService {
   ) {}
 
   findAll(): Promise<Space[]> {
-    return this.spaceRepository.find();
+    return this.spaceRepository.find({
+      where: { removed: false },
+    });
   }
 
   findSpaceById(id: number): Promise<Space> {
