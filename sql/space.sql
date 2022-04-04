@@ -1,6 +1,6 @@
 CREATE TABLE space (
   space_id int AUTO_INCREMENT,
-  name varchar (30) UNIQUE NOT NULL,
+  name varchar (30) NOT NULL,
   logo longblob,
   admin_code varchar (8) NOT NULL,
   user_code varchar (8) NOT NULL,
