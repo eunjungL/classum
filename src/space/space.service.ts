@@ -31,6 +31,12 @@ export class SpaceService {
     });
   }
 
+  findSpaceRoleById(id: number): Promise<SpaceRole> {
+    return this.spaceRoleRepository.findOne({
+      where: { role_id: id },
+    });
+  }
+
   // space 개설
   async createSpace(@Body() body, @Req() req, logo: Express.Multer.File) {
     const space = new Space();
@@ -110,5 +116,30 @@ export class SpaceService {
 
     console.log(participation);
     await this.participationRepository.save(participation);
+  }
+
+  // spaceRole 삭제
+  async deleteSpaceRole(@Req() req, role_id: string) {
+    const deleteSpaceRole = await this.findSpaceRoleById(Number(role_id));
+    if (deleteSpaceRole) {
+      const participation = await this.participationRepository.findOne({
+        where: {
+          user_id: req.user.user_id,
+          space_id: deleteSpaceRole.space_id,
+        },
+      });
+
+      // 요청한 사용자가 가진 spaceRole 이 관리자인지 확인 후 삭제
+      const spaceRole = await this.findSpaceRoleById(participation.role);
+      if (spaceRole.authority) {
+        deleteSpaceRole.removed = true;
+        await this.spaceRoleRepository.save(deleteSpaceRole);
+      } else {
+        throw new ForbiddenException();
+      }
+    } else {
+      // 없는 spaceRole 삭제 시도
+      throw new BadRequestException();
+    }
   }
 }

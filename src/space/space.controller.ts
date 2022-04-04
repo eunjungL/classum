@@ -37,6 +37,12 @@ export class SpaceController {
     return this.spaceService.deleteSpace(req, space_id);
   }
 
+  // spaceRole 삭제
+  @Post('/deleteRole/:role_id')
+  deleteRole(@Req() req, @Param('role_id') role_id: string) {
+    return this.spaceService.deleteSpaceRole(req, role_id);
+  }
+
   @Post('/participate/:space_id')
   participate(@Body() body, @Req() req, @Param('space_id') space_id: string) {
     return this.spaceService.participate(body, req, space_id);
