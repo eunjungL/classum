@@ -8,6 +8,7 @@ import {AuthMiddleware} from "./auth.middleware";
 import {UserController} from "./user/user.controller";
 import { SpaceModule } from './space/space.module';
 import {Space} from "./space/space.entity";
+import { SpaceController } from './space/space.controller';
 
 @Module({
   imports: [
@@ -32,6 +33,6 @@ export class AppModule implements NestModule {
         consumer
             .apply(AuthMiddleware)
             .exclude( '/user/login', '/user/refresh')
-            .forRoutes(UserController);
+            .forRoutes(UserController, SpaceController);
     }
 }
