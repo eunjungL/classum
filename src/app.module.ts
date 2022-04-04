@@ -6,6 +6,8 @@ import { UserModule } from './user/user.module';
 import { User } from "./user/user.entity";
 import {AuthMiddleware} from "./auth.middleware";
 import {UserController} from "./user/user.controller";
+import { SpaceModule } from './space/space.module';
+import {Space} from "./space/space.entity";
 
 @Module({
   imports: [
@@ -16,10 +18,11 @@ import {UserController} from "./user/user.controller";
         username: 'dldms',
         password: 'password',
         database: 'classum_dev',
-        entities: [User],
+        entities: [User, Space],
         synchronize: false
       }),
       UserModule,
+      SpaceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
