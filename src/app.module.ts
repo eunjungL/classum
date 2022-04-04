@@ -9,6 +9,7 @@ import { UserController } from './user/user.controller';
 import { SpaceModule } from './space/space.module';
 import { Space } from './space/space.entity';
 import { SpaceController } from './space/space.controller';
+import { SpaceRole } from './space/spaceRole.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { SpaceController } from './space/space.controller';
       username: 'dldms',
       password: 'password',
       database: 'classum_dev',
-      entities: [User, Space],
+      entities: [User, Space, SpaceRole],
       synchronize: false,
     }),
     UserModule,
