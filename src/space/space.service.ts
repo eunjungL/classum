@@ -2,6 +2,7 @@ import { Body, Injectable, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Space } from './space.entity';
 import { Repository } from 'typeorm';
+import { SpaceRole } from './spaceRole.entity';
 
 @Injectable()
 export class SpaceService {
@@ -18,7 +19,7 @@ export class SpaceService {
     space.name = body.name;
     space.admin_code = body.admin_code;
     space.user_code = body.user_code;
-    space.logo = logo.originalname;
+    space.logo = logo.filename;
     space.admin = req.user.email;
     await this.spaceRepository.save(space);
   }
