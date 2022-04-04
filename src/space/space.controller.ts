@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   UploadedFile,
@@ -28,5 +29,10 @@ export class SpaceController {
     @UploadedFile() logo: Express.Multer.File,
   ) {
     return this.spaceService.createSpace(body, req, logo);
+  }
+
+  @Post('/participate/:space_id')
+  participate(@Body() body, @Req() req, @Param('space_id') space_id: string) {
+    return this.spaceService.participate(body, req, space_id);
   }
 }

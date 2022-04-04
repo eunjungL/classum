@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Space } from './space.entity';
 import { Repository } from 'typeorm';
 import { SpaceRole } from './spaceRole.entity';
+import { Participation } from './participation.entity';
 
 @Injectable()
 export class SpaceService {
@@ -10,10 +11,18 @@ export class SpaceService {
     @InjectRepository(Space) private spaceRepository: Repository<Space>,
     @InjectRepository(SpaceRole)
     private spaceRoleRepository: Repository<SpaceRole>,
+    @InjectRepository(Participation)
+    private participationRepository: Repository<Participation>,
   ) {}
 
   findAll(): Promise<Space[]> {
     return this.spaceRepository.find();
+  }
+
+  findSpaceById(id: number): Promise<Space> {
+    return this.spaceRepository.findOne({
+      where: { space_id: id },
+    });
   }
 
   async createSpace(@Body() body, @Req() req, logo: Express.Multer.File) {
@@ -35,5 +44,33 @@ export class SpaceService {
         await this.spaceRoleRepository.save(spaceRole);
       }
     });
+  }
+
+  // space 참여
+  async participate(@Body() body, @Req() req, space_id: string) {
+    const participation = new Participation();
+    participation.user_id = req.user.user_id;
+    participation.space_id = Number(space_id);
+
+    // 입장 코드 및 권한에 따른 역할 판별
+    const code = body.code;
+    const space = await this.findSpaceById(Number(space_id));
+    const space_role = await this.spaceRoleRepository.findOne({
+      where: {
+        space_id: Number(space_id),
+        role_name: body.role_name,
+      },
+    });
+    if (space && space_role) {
+      if (
+        (code === space.admin_code && space_role.authority === true) ||
+        (code === space.user_code && space_role.authority === false)
+      ) {
+        participation.role = space_role.role_id;
+      } else throw new BadRequestException();
+    } else throw new BadRequestException();
+
+    console.log(participation);
+    await this.participationRepository.save(participation);
   }
 }
