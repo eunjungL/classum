@@ -42,7 +42,21 @@ export class SpaceService {
     space.admin = req.user.user_id;
 
     this.spaceRepository.save(space).then(async (space) => {
-      // space 개설 성공 후 spaceRole 등록
+      // space 개설 성공 후 개설자 spaceRole 에 등록
+      const spaceRole = new SpaceRole();
+      spaceRole.space_id = space.space_id;
+      spaceRole.role_name = '개설자';
+      spaceRole.authority = true;
+      const admin_role = await this.spaceRoleRepository.save(spaceRole);
+
+      // 개설자 participation 에 추가
+      const participation = new Participation();
+      participation.space_id = space.space_id;
+      participation.user_id = req.user.user_id;
+      participation.role = admin_role.role_id;
+      await this.participationRepository.save(participation);
+
+      // spaceRole 등록
       for (const role of body.space_role) {
         const spaceRole = new SpaceRole();
         spaceRole.space_id = space.space_id;
