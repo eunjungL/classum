@@ -1,7 +1,11 @@
-import { Module } from '@nestjs/common';
+import {MiddlewareConsumer, Module, NestModule} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModule } from './user/user.module';
+import { User } from "./user/user.entity";
+import {AuthMiddleware} from "./auth.middleware";
+import {UserController} from "./user/user.controller";
 
 @Module({
   imports: [
@@ -12,11 +16,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         username: 'dldms',
         password: 'password',
         database: 'classum_dev',
-        entities: [],
+        entities: [User],
         synchronize: false
       }),
+      UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer): any {
+        consumer
+            .apply(AuthMiddleware)
+            .exclude( '/user/login', '/user/refresh')
+            .forRoutes(UserController);
+    }
+}
