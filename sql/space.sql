@@ -4,8 +4,8 @@ CREATE TABLE space (
   logo longblob,
   admin_code varchar (8) NOT NULL,
   user_code varchar (8) NOT NULL,
-  admin varchar (50) NOT NULL,
+  admin int NOT NULL,
   removed boolean DEFAULT 0,
   PRIMARY KEY (space_id),
-  FOREIGN KEY (admin) REFERENCES user(email) ON DELETE CASCADE
+  FOREIGN KEY (admin) REFERENCES user(user_id) ON DELETE CASCADE
 );

@@ -23,7 +23,7 @@ export class SpaceService {
     space.user_code = body.user_code;
     if (logo) space.logo = logo.filename;
     else space.logo = null;
-    space.admin = req.user.email;
+    space.admin = req.user.user_id;
 
     this.spaceRepository.save(space).then(async (space) => {
       console.log(space.space_id);
