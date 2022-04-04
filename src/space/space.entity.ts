@@ -1,25 +1,25 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Space {
-    @PrimaryGeneratedColumn()
-    space_id: number;
+  @PrimaryGeneratedColumn()
+  space_id: number;
 
-    @Column()
-    name: string
+  @Column()
+  name: string;
 
-    @Column()
-    logo: Buffer;
+  @Column()
+  logo: string;
 
-    @Column()
-    admin_code: string;
+  @Column()
+  admin_code: string;
 
-    @Column()
-    user_code: string;
+  @Column()
+  user_code: string;
 
-    @Column()
-    admin: string;
+  @Column()
+  admin: string;
 
-    @Column({ default : false})
-    removed: boolean;
+  @Column({ default: false })
+  removed: boolean;
 }
