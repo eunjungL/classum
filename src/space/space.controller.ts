@@ -31,6 +31,12 @@ export class SpaceController {
     return this.spaceService.createSpace(body, req, logo);
   }
 
+  // space 삭제
+  @Post('/delete/:space_id')
+  deleteSpace(@Req() req, @Param('space_id') space_id: string): Promise<void> {
+    return this.spaceService.deleteSpace(req, space_id);
+  }
+
   @Post('/participate/:space_id')
   participate(@Body() body, @Req() req, @Param('space_id') space_id: string) {
     return this.spaceService.participate(body, req, space_id);

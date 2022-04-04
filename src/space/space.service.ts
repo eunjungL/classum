@@ -1,4 +1,10 @@
-import { BadRequestException, Body, Injectable, Req } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ForbiddenException,
+  Injectable,
+  Req,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Space } from './space.entity';
 import { Repository } from 'typeorm';
@@ -44,6 +50,23 @@ export class SpaceService {
         await this.spaceRoleRepository.save(spaceRole);
       }
     });
+  }
+
+  // space 삭제
+  async deleteSpace(@Req() req, space_id: string): Promise<void> {
+    const space = await this.findSpaceById(Number(space_id));
+    if (space) {
+      // 개설자인지 판별
+      if (req.user.user_id === space.admin) {
+        space.removed = true;
+        await this.spaceRepository.save(space);
+      } else {
+        throw new ForbiddenException();
+      }
+    } else {
+      // 없는 space 삭제 시도
+      throw new BadRequestException();
+    }
   }
 
   // space 참여
