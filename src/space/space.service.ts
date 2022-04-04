@@ -31,6 +31,7 @@ export class SpaceService {
     });
   }
 
+  // space 개설
   async createSpace(@Body() body, @Req() req, logo: Express.Multer.File) {
     const space = new Space();
     space.name = body.name;
@@ -41,7 +42,7 @@ export class SpaceService {
     space.admin = req.user.user_id;
 
     this.spaceRepository.save(space).then(async (space) => {
-      console.log(space.space_id);
+      // space 개설 성공 후 spaceRole 등록
       for (const role of body.space_role) {
         const spaceRole = new SpaceRole();
         spaceRole.space_id = space.space_id;
