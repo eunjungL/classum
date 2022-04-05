@@ -20,6 +20,6 @@ export class User {
   @Column()
   profile: Buffer;
 
-  @Column({ default: true })
+  @Column({ default: false })
   removed: boolean;
 }
