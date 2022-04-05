@@ -229,4 +229,48 @@ export class PostService {
       return await this.chatRepository.save(new_chat);
     } else throw new BadRequestException(); // 없는 chat 에 reply 작성 시도
   }
+
+  // Reply 삭제
+  async deleteReply(chat_id: number) {
+    const replies = await this.chatRepository.find({
+      where: { reply_group: chat_id },
+    });
+    if (replies) {
+      // 답글이 있다면 함께 삭제
+      for (const reply of replies) {
+        reply.removed = true;
+        await this.chatRepository.save(reply);
+      }
+    }
+  }
+
+  // Chat 삭제
+  async deleteChat(@Req() req, chat_id: number): Promise<Chat> {
+    const chat = await this.findChatById(chat_id);
+
+    if (chat) {
+      if (req.user.user_id === chat.writer) {
+        // 작성자인 경우 삭제 가능
+        // 답글이 있다면 함께 삭제
+        await this.deleteReply(chat.chat_id);
+        chat.removed = true;
+        return await this.chatRepository.save(chat);
+      } else {
+        // 작성자 아닌 경우 관리자인지 확인
+        const post = await this.findPostById(chat.post_id);
+        const userRole = await this.findUserRole(
+          post.space_id,
+          req.user.user_id,
+        );
+
+        if (userRole.authority) {
+          // 관리자인 경우 삭제 가능
+          // 답글이 있다면 함께 삭제
+          await this.deleteReply(chat.chat_id);
+          chat.removed = true;
+          return await this.chatRepository.save(chat);
+        } else throw new ForbiddenException(); // 삭제 권한 없음
+      }
+    } else throw new BadRequestException(); // 없는 chat 삭제 시도
+  }
 }

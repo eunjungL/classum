@@ -67,4 +67,10 @@ export class PostController {
   ): Promise<Chat> {
     return this.postService.createReply(body, req, Number(chat_id));
   }
+
+  // chat and reply 삭제
+  @Post('chat/delete/:chat_id')
+  deleteChat(@Req() req, @Param('chat_id') chat_id: string): Promise<Chat> {
+    return this.postService.deleteChat(req, Number(chat_id));
+  }
 }
