@@ -22,6 +22,14 @@ export class PostController {
     return this.postService.readAllPost(req, Number(space_id));
   }
 
+  // 특정 space 의 특정 post 읽기
+  @Get(':space_id/:post_id')
+  readPost(@Req() req, @Param() param) {
+    const space_id = param.space_id;
+    const post_id = param.post_id;
+    return this.postService.readPost(req, Number(space_id), Number(post_id));
+  }
+
   // post 등록
   @Post(':space_id')
   @UseInterceptors(FileInterceptor('file'))

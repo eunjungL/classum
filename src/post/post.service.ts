@@ -78,6 +78,24 @@ export class PostService {
     return posts;
   }
 
+  // 특정 space 의 특정 post 읽기
+  async readPost(@Req() req, space_id: number, post_id: number): Promise<Post> {
+    const post = await this.findPostById(post_id);
+    const userRole = await this.findUserRole(space_id, req.user.user_id);
+
+    if (post) {
+      if (
+        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때
+        post.anonymity &&
+        post.writer !== req.user.user_id &&
+        !userRole.authority
+      ) {
+        delete post.writer;
+      }
+      return post;
+    } else throw new BadRequestException(); // 없는 post 읽기 시도
+  }
+
   // Post 등록
   async createPost(
     @Body() body,
