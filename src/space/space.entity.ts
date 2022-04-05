@@ -1,24 +1,24 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class User {
+export class Space {
   @PrimaryGeneratedColumn()
-  user_id: number;
+  space_id: number;
 
   @Column()
-  email: string;
+  name: string;
 
   @Column()
-  password: string;
+  logo: string;
 
   @Column()
-  last_name: string;
+  admin_code: string;
 
   @Column()
-  first_name: string;
+  user_code: string;
 
   @Column()
-  profile: Buffer;
+  admin: string;
 
   @Column({ default: false })
   removed: boolean;

@@ -1,24 +1,18 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class User {
+export class Participation {
   @PrimaryGeneratedColumn()
+  participation_id: number;
+
+  @Column()
+  space_id: number;
+
+  @Column()
   user_id: number;
 
   @Column()
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column()
-  last_name: string;
-
-  @Column()
-  first_name: string;
-
-  @Column()
-  profile: Buffer;
+  role: number;
 
   @Column({ default: false })
   removed: boolean;
