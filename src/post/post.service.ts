@@ -1,8 +1,13 @@
-import { Body, ForbiddenException, Injectable, Req } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ForbiddenException,
+  Injectable,
+  Req,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './post.entity';
 import { Repository } from 'typeorm';
-import { SpaceService } from '../space/space.service';
 import { Participation } from '../space/participation.entity';
 import { SpaceRole } from '../space/spaceRole.entity';
 
@@ -15,6 +20,34 @@ export class PostService {
     @InjectRepository(SpaceRole)
     private spaceRoleRepository: Repository<SpaceRole>,
   ) {}
+
+  findPostById(post_id: number): Promise<Post> {
+    return this.postRepository.findOne({
+      where: {
+        post_id: post_id,
+      },
+    });
+  }
+
+  findParticipationByUser(
+    space_id: number,
+    user_id: number,
+  ): Promise<Participation> {
+    return this.participationRepository.findOne({
+      where: {
+        space_id: space_id,
+        user_id: user_id,
+      },
+    });
+  }
+
+  findSpaceRoleById(role_id: number) {
+    return this.spaceRoleRepository.findOne({
+      where: {
+        role_id: role_id,
+      },
+    });
+  }
 
   // Post 등록
   async createPost(
@@ -69,5 +102,32 @@ export class PostService {
     }
 
     return await this.postRepository.save(post);
+  }
+
+  // post 삭제
+  async deletePost(@Req() req, post_id: number) {
+    const post = await this.findPostById(post_id);
+    if (post) {
+      if (req.user.user_id === post.writer) {
+        // 작성자인 경우 삭제 가능
+        post.removed = true;
+        return await this.postRepository.save(post);
+      } else {
+        // 작성자가 아닌 경우 관리자인지 확인
+        const participation = await this.findParticipationByUser(
+          post.space_id,
+          req.user.user_id,
+        );
+
+        if (participation) {
+          const spaceRole = await this.findSpaceRoleById(participation.role);
+          if (spaceRole.authority) {
+            // 관리자인 경우 삭제 가능
+            post.removed = true;
+            return await this.postRepository.save(post);
+          } else throw new ForbiddenException(); // 관리자 아니면 삭제 권한 없음
+        } else throw new ForbiddenException(); // 참여자 아니면 삭제 권한 없음
+      }
+    } else throw new BadRequestException();
   }
 }
