@@ -23,6 +23,12 @@ export class PostController {
     return this.postService.readAllPost(req, Number(space_id));
   }
 
+  // 특정 게시글 댓글 보기
+  @Get('chat/:post_id')
+  readChat(@Req() req, @Param('post_id') post_id: string) {
+    return this.postService.readChat(req, Number(post_id));
+  }
+
   // 특정 space 의 특정 post 읽기
   @Get(':space_id/:post_id')
   readPost(@Req() req, @Param() param) {

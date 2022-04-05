@@ -191,6 +191,30 @@ export class PostService {
     } else throw new BadRequestException();
   }
 
+  async readChat(@Req() req, post_id: number): Promise<Chat[]> {
+    const chats = await this.chatRepository.find({
+      where: {
+        post_id: post_id,
+        removed: false,
+      },
+    });
+    const post = await this.findPostById(post_id);
+    const userRole = await this.findUserRole(post.space_id, req.user.user_id);
+
+    chats.forEach((chat) => {
+      if (
+        // chat 이 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐때
+        chat.anonymity &&
+        chat.writer !== req.user.user_id &&
+        !userRole.authority
+      ) {
+        delete chat.writer;
+      }
+    });
+
+    return chats;
+  }
+
   // Chat 등록
   async createChat(@Body() body, @Req() req, post_id: number): Promise<Chat> {
     const chat = new Chat();
