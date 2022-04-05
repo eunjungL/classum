@@ -9,10 +9,11 @@ import { Participation } from '../space/participation.entity';
 import { SpaceService } from '../space/space.service';
 import { Space } from '../space/space.entity';
 import { SpaceRole } from '../space/spaceRole.entity';
+import { Chat } from './chat.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Post, Participation, SpaceRole]),
+    TypeOrmModule.forFeature([Post, Participation, SpaceRole, Chat]),
     MulterModule.register({
       storage: diskStorage({
         destination: './src/upload/post',

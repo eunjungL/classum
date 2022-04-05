@@ -14,6 +14,7 @@ import { Participation } from './space/participation.entity';
 import { PostModule } from './post/post.module';
 import { Post } from './post/post.entity';
 import { PostController } from './post/post.controller';
+import { Chat } from './post/chat.entity';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { PostController } from './post/post.controller';
       username: 'dldms',
       password: 'password',
       database: 'classum_dev',
-      entities: [User, Space, SpaceRole, Participation, Post],
+      entities: [User, Space, SpaceRole, Participation, Post, Chat],
       synchronize: false,
     }),
     UserModule,

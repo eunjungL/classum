@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   ForbiddenException,
+  Inject,
   Injectable,
   Req,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { Post } from './post.entity';
 import { Repository } from 'typeorm';
 import { Participation } from '../space/participation.entity';
 import { SpaceRole } from '../space/spaceRole.entity';
+import { Chat } from './chat.entity';
 
 @Injectable()
 export class PostService {
@@ -19,6 +21,8 @@ export class PostService {
     private participationRepository: Repository<Participation>,
     @InjectRepository(SpaceRole)
     private spaceRoleRepository: Repository<SpaceRole>,
+    @InjectRepository(Chat)
+    private chatRepository: Repository<Chat>,
   ) {}
 
   findPostById(post_id: number): Promise<Post> {
@@ -177,5 +181,28 @@ export class PostService {
         } else throw new ForbiddenException(); // 참여자 아니면 삭제 권한 없음
       }
     } else throw new BadRequestException();
+  }
+
+  // Chat 등록
+  async createChat(@Body() body, @Req() req, post_id: number): Promise<Chat> {
+    const chat = new Chat();
+    chat.post_id = post_id;
+    chat.content = body.content;
+    chat.writer = req.user.user_id;
+
+    const post = await this.findPostById(post_id);
+    if (post) {
+      const participation = await this.findParticipationByUser(
+        post.space_id,
+        req.user.user,
+      );
+
+      if (participation) {
+        // 참여자인 경우 익명 댓글 작성 가능
+        chat.anonymity = body.anonymity === 'true';
+      } else chat.anonymity = false; // 참여자가 아닌 경우 익명 댓글 작성 불가
+
+      return await this.chatRepository.save(chat);
+    } else throw new BadRequestException(); // 없는 post 에 댓글 작성 시도
   }
 }

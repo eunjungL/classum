@@ -11,6 +11,7 @@ import {
 import { PostService } from './post.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Post as PostEntity } from './post.entity';
+import { Chat } from './chat.entity';
 
 @Controller('post')
 export class PostController {
@@ -45,5 +46,15 @@ export class PostController {
   @Post('/delete/:post_id')
   deletePost(@Req() req, @Param('post_id') post_id: string) {
     return this.postService.deletePost(req, Number(post_id));
+  }
+
+  // chat 등록
+  @Post('chat/:post_id')
+  createChat(
+    @Body() body,
+    @Req() req,
+    @Param('post_id') post_id: string,
+  ): Promise<Chat> {
+    return this.postService.createChat(body, req, Number(post_id));
   }
 }
