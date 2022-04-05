@@ -68,9 +68,10 @@ export class PostService {
     console.log(req.user.user_id);
     posts.forEach((post) => {
       if (
-        // post 가 익명이고 사용자가 작성자가 아니거나 space 의 관리자가 아닐 때
+        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때
         post.anonymity &&
-        (post.writer !== req.user.user_id || !userRole.authority)
+        post.writer !== req.user.user_id &&
+        !userRole.authority
       ) {
         delete post.writer;
       }
