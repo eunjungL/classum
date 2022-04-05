@@ -57,4 +57,14 @@ export class PostController {
   ): Promise<Chat> {
     return this.postService.createChat(body, req, Number(post_id));
   }
+
+  // reply 등록
+  @Post('chat/reply/:chat_id')
+  createReply(
+    @Body() body,
+    @Req() req,
+    @Param('chat_id') chat_id: string,
+  ): Promise<Chat> {
+    return this.postService.createReply(body, req, Number(chat_id));
+  }
 }

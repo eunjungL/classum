@@ -53,6 +53,14 @@ export class PostService {
     });
   }
 
+  findChatById(chat_id: number) {
+    return this.chatRepository.findOne({
+      where: {
+        chat_id: chat_id,
+      },
+    });
+  }
+
   // 참여자의 space Role 얻어오기
   async findUserRole(space_id: number, user_id: number): Promise<SpaceRole> {
     const participation = await this.findParticipationByUser(space_id, user_id);
@@ -204,5 +212,21 @@ export class PostService {
 
       return await this.chatRepository.save(chat);
     } else throw new BadRequestException(); // 없는 post 에 댓글 작성 시도
+  }
+
+  // Reply 등록
+  async createReply(@Body() body, @Req() req, chat_id: number): Promise<Chat> {
+    const chat = await this.findChatById(chat_id);
+    if (chat) {
+      const new_chat = new Chat();
+      new_chat.post_id = chat.post_id;
+      new_chat.content = body.content;
+      new_chat.writer = req.user.user_id;
+      new_chat.anonymity = body.anonymity === 'true';
+      new_chat.is_reply = true;
+      new_chat.reply_group = chat.chat_id;
+      console.log(new_chat);
+      return await this.chatRepository.save(new_chat);
+    } else throw new BadRequestException(); // 없는 chat 에 reply 작성 시도
   }
 }
