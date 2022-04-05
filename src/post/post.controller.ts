@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
   Req,
@@ -14,6 +15,12 @@ import { Post as PostEntity } from './post.entity';
 @Controller('post')
 export class PostController {
   constructor(private postService: PostService) {}
+
+  // 특정 space 의 모든 post 읽기
+  @Get(':space_id')
+  readAllPost(@Req() req, @Param('space_id') space_id: string) {
+    return this.postService.readAllPost(req, Number(space_id));
+  }
 
   // post 등록
   @Post(':space_id')

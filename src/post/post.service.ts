@@ -49,6 +49,35 @@ export class PostService {
     });
   }
 
+  // 참여자의 space Role 얻어오기
+  async findUserRole(space_id: number, user_id: number): Promise<SpaceRole> {
+    const participation = await this.findParticipationByUser(space_id, user_id);
+    if (participation) {
+      return await this.findSpaceRoleById(participation.role);
+    } else return null;
+  }
+
+  // 특정 space 의 모든 Post 읽기
+  async readAllPost(@Req() req, space_id: number) {
+    const posts = await this.postRepository.find({
+      where: {
+        space_id: space_id,
+      },
+    });
+    const userRole = await this.findUserRole(space_id, req.user.user_id);
+    console.log(req.user.user_id);
+    posts.forEach((post) => {
+      if (
+        // post 가 익명이고 사용자가 작성자가 아니거나 space 의 관리자가 아닐 때
+        post.anonymity &&
+        (post.writer !== req.user.user_id || !userRole.authority)
+      ) {
+        delete post.writer;
+      }
+    });
+    return posts;
+  }
+
   // Post 등록
   async createPost(
     @Body() body,
