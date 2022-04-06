@@ -61,6 +61,12 @@ export class PostService {
     });
   }
 
+  // post 상태 업데이트
+  async updatePostState(post: Post, state: number): Promise<Post> {
+    if (post.state > state) post.state = state;
+    return await this.postRepository.save(post);
+  }
+
   // 참여자의 space Role 얻어오기
   async findUserRole(space_id: number, user_id: number): Promise<SpaceRole> {
     const participation = await this.findParticipationByUser(space_id, user_id);
@@ -234,7 +240,8 @@ export class PostService {
         chat.anonymity = body.anonymity === 'true';
       } else chat.anonymity = false; // 참여자가 아닌 경우 익명 댓글 작성 불가
 
-      return await this.chatRepository.save(chat);
+      await this.updatePostState(post, 2);
+      return this.chatRepository.save(chat);
     } else throw new BadRequestException(); // 없는 post 에 댓글 작성 시도
   }
 
@@ -249,7 +256,9 @@ export class PostService {
       new_chat.anonymity = body.anonymity === 'true';
       new_chat.is_reply = true;
       new_chat.reply_group = chat.chat_id;
-      console.log(new_chat);
+
+      const post = await this.findPostById(chat.post_id);
+      await this.updatePostState(post, 2);
       return await this.chatRepository.save(new_chat);
     } else throw new BadRequestException(); // 없는 chat 에 reply 작성 시도
   }
