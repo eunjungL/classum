@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { Participation } from '../space/participation.entity';
 import { SpaceRole } from '../space/spaceRole.entity';
 import { Chat } from './chat.entity';
+import { PostRead } from './postRead.entity';
 
 @Injectable()
 export class PostService {
@@ -23,6 +24,8 @@ export class PostService {
     private spaceRoleRepository: Repository<SpaceRole>,
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
+    @InjectRepository(PostRead)
+    private postReadRepository: Repository<PostRead>,
   ) {}
 
   findPostById(post_id: number): Promise<Post> {
@@ -61,10 +64,22 @@ export class PostService {
     });
   }
 
+  // 읽은 상태 가져오기
+  findPostRead(post_id: number, user_id: number): Promise<PostRead> {
+    return this.postReadRepository.findOne({
+      where: {
+        post_id: post_id,
+        reader: user_id,
+      },
+    });
+  }
+
   // post 상태 업데이트
   async updatePostState(post: Post, state: number): Promise<Post> {
-    if (post.state > state) post.state = state;
-    return await this.postRepository.save(post);
+    if (post) {
+      post.state = state;
+      return await this.postRepository.save(post);
+    }
   }
 
   // 참여자의 space Role 얻어오기
@@ -83,8 +98,8 @@ export class PostService {
       },
     });
     const userRole = await this.findUserRole(space_id, req.user.user_id);
-    console.log(req.user.user_id);
-    posts.forEach((post) => {
+
+    for (const post of posts) {
       if (
         // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때
         post.anonymity &&
@@ -93,7 +108,17 @@ export class PostService {
       ) {
         delete post.writer;
       }
-    });
+      const postRead = await this.findPostRead(post.post_id, req.user.user_id);
+      if (postRead) {
+        if (post.state === postRead.read_state) {
+          // 게시글 상태와 읽은 상태가 동일하다면 표시할 상태가 없다.
+          delete post.state;
+        } // 나머지는 게시글 상태가 표시할 상태이다.
+      } else {
+        // 게시글을 읽지 않았다면 무조건 새로운 게시글이라고 표시
+        post.state = 0;
+      }
+    }
     return posts;
   }
 
@@ -111,6 +136,22 @@ export class PostService {
       ) {
         delete post.writer;
       }
+
+      // readPost 에 읽은 상태 등록
+      const postRead = await this.findPostRead(post_id, req.user.user_id);
+      if (postRead) {
+        // 읽은 상태가 이전에 존재하면 상태만 업데이트
+        postRead.read_state = post.state;
+        await this.postReadRepository.save(postRead);
+      } else {
+        // 읽은 상태가 없으면 새로 생성해서 등록
+        const newPostRead = new PostRead();
+        newPostRead.post_id = post_id;
+        newPostRead.reader = req.user.user_id;
+        newPostRead.read_state = post.state;
+        await this.postReadRepository.save(newPostRead);
+      }
+
       return post;
     } else throw new BadRequestException(); // 없는 post 읽기 시도
   }
