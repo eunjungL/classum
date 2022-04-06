@@ -11,6 +11,11 @@ import { Space } from './space/space.entity';
 import { SpaceController } from './space/space.controller';
 import { SpaceRole } from './space/spaceRole.entity';
 import { Participation } from './space/participation.entity';
+import { PostModule } from './post/post.module';
+import { Post } from './post/post.entity';
+import { PostController } from './post/post.controller';
+import { Chat } from './post/chat.entity';
+import { PostRead } from './post/postRead.entity';
 
 @Module({
   imports: [
@@ -21,11 +26,12 @@ import { Participation } from './space/participation.entity';
       username: 'dldms',
       password: 'password',
       database: 'classum_dev',
-      entities: [User, Space, SpaceRole, Participation],
+      entities: [User, Space, SpaceRole, Participation, Post, Chat, PostRead],
       synchronize: false,
     }),
     UserModule,
     SpaceModule,
+    PostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -35,6 +41,6 @@ export class AppModule implements NestModule {
     consumer
       .apply(AuthMiddleware)
       .exclude('/user/login', '/user/refresh')
-      .forRoutes(UserController, SpaceController);
+      .forRoutes(UserController, SpaceController, PostController);
   }
 }

@@ -18,7 +18,7 @@ export class Space {
   user_code: string;
 
   @Column()
-  admin: string;
+  admin: number;
 
   @Column({ default: false })
   removed: boolean;
