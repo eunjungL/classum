@@ -24,6 +24,11 @@ export class SpaceController {
     return this.spaceService.readAllSpace();
   }
 
+  @Get(':space_id')
+  readSpace(@Param('space_id') space_id: string): Promise<Space> {
+    return this.spaceService.findSpaceById(Number(space_id));
+  }
+
   // space 등록
   @Post()
   @UseInterceptors(FileInterceptor('logo'))
