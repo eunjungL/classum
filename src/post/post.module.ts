@@ -19,6 +19,7 @@ import { PostRead } from './postRead.entity';
       storage: diskStorage({
         destination: './src/upload/post',
         filename: (req, file, cb) => {
+          // 현재 시간(초) + 원래 이름으로 파일 저장
           cb(null, Date.now() + '-' + file.originalname);
         },
       }),

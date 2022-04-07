@@ -49,6 +49,7 @@ export class PostController {
     return this.postService.createPost(body, req, Number(space_id), file);
   }
 
+  // post 삭제
   @Post('/delete/:post_id')
   deletePost(@Req() req, @Param('post_id') post_id: string) {
     return this.postService.deletePost(req, Number(post_id));

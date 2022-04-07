@@ -28,6 +28,7 @@ export class PostService {
     private postReadRepository: Repository<PostRead>,
   ) {}
 
+  // id로 특정 post 찾기
   findPostById(post_id: number): Promise<Post> {
     return this.postRepository.findOne({
       where: {
@@ -36,6 +37,7 @@ export class PostService {
     });
   }
 
+  // 참여자 정보 찾기
   findParticipationByUser(
     space_id: number,
     user_id: number,
@@ -56,6 +58,7 @@ export class PostService {
     });
   }
 
+  // id로 특정 chat 찾기
   findChatById(chat_id: number) {
     return this.chatRepository.findOne({
       where: {
@@ -82,7 +85,7 @@ export class PostService {
     }
   }
 
-  // 참여자의 space Role 얻어오기
+  // 참여자의 참여 space Role 얻어오기
   async findUserRole(space_id: number, user_id: number): Promise<SpaceRole> {
     const participation = await this.findParticipationByUser(space_id, user_id);
     if (participation) {
@@ -101,7 +104,7 @@ export class PostService {
 
     for (const post of posts) {
       if (
-        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때
+        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때 작성자 정보 삭제
         post.anonymity &&
         post.writer !== req.user.user_id &&
         !userRole.authority
@@ -113,7 +116,7 @@ export class PostService {
         if (post.state === postRead.read_state) {
           // 게시글 상태와 읽은 상태가 동일하다면 표시할 상태가 없다.
           delete post.state;
-        } // 나머지는 게시글 상태가 표시할 상태이다.
+        } // 이 외에는 게시글 상태가 표시할 상태이다.
       } else {
         // 게시글을 읽지 않았다면 무조건 새로운 게시글이라고 표시
         post.state = 0;
@@ -129,7 +132,7 @@ export class PostService {
 
     if (post) {
       if (
-        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때
+        // post 가 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐 때 작성자 삭제
         post.anonymity &&
         post.writer !== req.user.user_id &&
         !userRole.authority
@@ -140,11 +143,11 @@ export class PostService {
       // readPost 에 읽은 상태 등록
       const postRead = await this.findPostRead(post_id, req.user.user_id);
       if (postRead) {
-        // 읽은 상태가 이전에 존재하면 상태만 업데이트
+        // 읽은 상태가 이전에 존재하면(읽은 기록이 있으면) 상태만 업데이트
         postRead.read_state = post.state;
         await this.postReadRepository.save(postRead);
       } else {
-        // 읽은 상태가 없으면 새로 생성해서 등록
+        // 읽은 상태가 없으면(처음 읽는 것이면) 새로 생성해서 등록
         const newPostRead = new PostRead();
         newPostRead.post_id = post_id;
         newPostRead.reader = req.user.user_id;
@@ -189,14 +192,14 @@ export class PostService {
       });
 
       if (!category) {
-        // 질문 작성 == 누구나 가능, 익명 여부는 선택에 따라
+        // 질문 작성은 누구나 가능, 익명 여부는 선택에 따라
         post.category = category;
         post.anonymity = body.anonymity === 'true';
       } else if (spaceRole.authority && category) {
-        // 관리자 권한 && 공지 작성 == 가능, 공지는 익명 불가
+        // 관리자 권한이면 공지 작성, 공지는 익명이 불가하므로 선택권 X
         post.category = category;
       } else if (!spaceRole.authority && category) {
-        // 사용자 권한 && 공지 작성 == 차단
+        // 사용자 권한이면 공지 작성 권한 없음
         throw new ForbiddenException();
       }
     } else {
