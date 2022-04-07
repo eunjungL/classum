@@ -242,6 +242,7 @@ export class PostService {
     } else throw new BadRequestException();
   }
 
+  // post 에 달린 chat 읽기
   async readChat(@Req() req, post_id: number): Promise<Chat[]> {
     const chats = await this.chatRepository.find({
       where: {
@@ -252,18 +253,20 @@ export class PostService {
     const post = await this.findPostById(post_id);
     const userRole = await this.findUserRole(post.space_id, req.user.user_id);
 
-    chats.forEach((chat) => {
-      if (
-        // chat 이 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐때
-        chat.anonymity &&
-        chat.writer !== req.user.user_id &&
-        !userRole.authority
-      ) {
-        delete chat.writer;
-      }
-    });
+    if (userRole) {
+      chats.forEach((chat) => {
+        if (
+          // chat 이 익명이고 사용자가 작성자도 아니고 space 의 관리자도 아닐때
+          chat.anonymity &&
+          chat.writer !== req.user.user_id &&
+          !userRole.authority
+        ) {
+          delete chat.writer;
+        }
+      });
 
-    return chats;
+      return chats;
+    } else throw new ForbiddenException(); // 참여자가 아니면 댓글 읽기 권한이 없는 것으로 설정
   }
 
   // Chat 등록
@@ -341,7 +344,7 @@ export class PostService {
           req.user.user_id,
         );
 
-        if (userRole.authority) {
+        if (userRole && userRole.authority) {
           // 관리자인 경우 삭제 가능
           // 답글이 있다면 함께 삭제
           await this.deleteReply(chat.chat_id);
