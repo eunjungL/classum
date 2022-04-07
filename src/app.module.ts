@@ -16,16 +16,24 @@ import { Post } from './post/post.entity';
 import { PostController } from './post/post.controller';
 import { Chat } from './post/chat.entity';
 import { PostRead } from './post/postRead.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.production.env'
+          : '.development.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'dldms',
       password: 'password',
-      database: 'classum_dev',
+      database: process.env.DATABASE,
       entities: [User, Space, SpaceRole, Participation, Post, Chat, PostRead],
       synchronize: false,
     }),
