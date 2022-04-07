@@ -21,18 +21,21 @@ export class SpaceService {
     private participationRepository: Repository<Participation>,
   ) {}
 
-  findAll(): Promise<Space[]> {
+  // 모든 space 읽기
+  readAllSpace(): Promise<Space[]> {
     return this.spaceRepository.find({
       where: { removed: false },
     });
   }
 
+  // id로 특정 space 찾기
   findSpaceById(id: number): Promise<Space> {
     return this.spaceRepository.findOne({
       where: { space_id: id },
     });
   }
 
+  // id로 특정 spaceRole 찾기
   findSpaceRoleById(id: number): Promise<SpaceRole> {
     return this.spaceRoleRepository.findOne({
       where: { role_id: id },
@@ -84,6 +87,7 @@ export class SpaceService {
         space.removed = true;
         await this.spaceRepository.save(space);
       } else {
+        // 개설자가 아니면 삭제 불가
         throw new ForbiddenException();
       }
     } else {
@@ -101,28 +105,30 @@ export class SpaceService {
     // 입장 코드 및 권한에 따른 역할 판별
     const code = body.code;
     const space = await this.findSpaceById(Number(space_id));
-    const space_role = await this.spaceRoleRepository.findOne({
+    const spaceRole = await this.spaceRoleRepository.findOne({
       where: {
         space_id: Number(space_id),
         role_name: body.role_name,
       },
     });
-    if (space && space_role) {
-      if (
-        (code === space.admin_code && space_role.authority === true) ||
-        (code === space.user_code && space_role.authority === false)
-      ) {
-        participation.role = space_role.role_id;
-      } else throw new BadRequestException();
-    } else throw new BadRequestException();
 
-    console.log(participation);
+    if (space && spaceRole) {
+      if (
+        // 입장 코드와 참여하려는 역할 권한 비교
+        (code === space.admin_code && spaceRole.authority === true) ||
+        (code === space.user_code && spaceRole.authority === false)
+      ) {
+        participation.role = spaceRole.role_id;
+      } else throw new BadRequestException();
+    } else throw new BadRequestException(); // 없는 space 참여 시도거나 없는 spaceRole 로 참여 시도
+
     await this.participationRepository.save(participation);
   }
 
   // spaceRole 삭제
   async deleteSpaceRole(@Req() req, role_id: string) {
     const deleteSpaceRole = await this.findSpaceRoleById(Number(role_id));
+
     if (deleteSpaceRole) {
       const participation = await this.participationRepository.findOne({
         where: {
@@ -137,6 +143,7 @@ export class SpaceService {
         deleteSpaceRole.removed = true;
         await this.spaceRoleRepository.save(deleteSpaceRole);
       } else {
+        // 관리자가 아니면 spaceRole 삭제 불가
         throw new ForbiddenException();
       }
     } else {

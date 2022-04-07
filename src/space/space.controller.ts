@@ -16,11 +16,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class SpaceController {
   constructor(private spaceService: SpaceService) {}
 
+  // 모든 space 읽기
   @Get()
-  findAll(): Promise<Space[]> {
-    return this.spaceService.findAll();
+  readAllSpace(): Promise<Space[]> {
+    return this.spaceService.readAllSpace();
   }
 
+  // space 등록
   @Post()
   @UseInterceptors(FileInterceptor('logo'))
   createSpace(
@@ -43,6 +45,7 @@ export class SpaceController {
     return this.spaceService.deleteSpaceRole(req, role_id);
   }
 
+  // space 참여
   @Post('/participate/:space_id')
   participate(@Body() body, @Req() req, @Param('space_id') space_id: string) {
     return this.spaceService.participate(body, req, space_id);
