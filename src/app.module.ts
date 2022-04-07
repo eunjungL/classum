@@ -17,6 +17,7 @@ import { PostController } from './post/post.controller';
 import { Chat } from './post/chat.entity';
 import { PostRead } from './post/postRead.entity';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerMiddleware } from './logger.middleware';
 
 @Module({
   imports: [
@@ -50,5 +51,10 @@ export class AppModule implements NestModule {
       .apply(AuthMiddleware)
       .exclude('/user/login', '/user/refresh')
       .forRoutes(UserController, SpaceController, PostController);
+    if (process.env.NODE_ENV === 'development') {
+      consumer
+        .apply(LoggerMiddleware)
+        .forRoutes(UserController, SpaceController, PostController);
+    }
   }
 }
