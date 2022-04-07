@@ -1,6 +1,6 @@
 # 설치
 ## 파일 설치
-1. git을 통해 파일을 다운
+1. git을 통해 파일 다운
 2. 필요한 패키지 설치
 ```typescript
 npm install
@@ -10,8 +10,10 @@ npm install
 1. development 환경용 DB `classum_dev`
 2. production 환경용 DB `classum_production`
 
+두 데이터 베이스 모두 생성
+
 ### 테이블 생성
-`/sql` 디렉토리 내부에 들어있는 파일을 사용해 mysql에서 `source`를 사용해 테이블 생성
+`/sql` 디렉토리 내부에 들어있는 파일을 사용, mysql에서 `source`를 사용해 테이블 생성
 (**두 개의 데이터베이스에 모두 생성**)
 1. user
 2. space
