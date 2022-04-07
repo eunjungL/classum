@@ -43,7 +43,11 @@ export class SpaceService {
   }
 
   // space 개설
-  async createSpace(@Body() body, @Req() req, logo: Express.Multer.File) {
+  async createSpace(
+    @Body() body,
+    @Req() req,
+    logo: Express.Multer.File,
+  ): Promise<Space> {
     const space = new Space();
     space.name = body.name;
     space.admin_code = body.admin_code;
@@ -52,40 +56,41 @@ export class SpaceService {
     else space.logo = null;
     space.admin = req.user.user_id;
 
-    this.spaceRepository.save(space).then(async (space) => {
-      // space 개설 성공 후 개설자 spaceRole 에 등록
+    const createSpace = await this.spaceRepository.save(space);
+    // space 개설 성공 후 개설자 spaceRole 에 등록
+    const spaceRole = new SpaceRole();
+    spaceRole.space_id = space.space_id;
+    spaceRole.role_name = '개설자';
+    spaceRole.authority = true;
+    const admin_role = await this.spaceRoleRepository.save(spaceRole);
+
+    // 개설자 participation 에 추가
+    const participation = new Participation();
+    participation.space_id = space.space_id;
+    participation.user_id = req.user.user_id;
+    participation.role = admin_role.role_id;
+    await this.participationRepository.save(participation);
+
+    // spaceRole 등록
+    for (const role of body.space_role) {
       const spaceRole = new SpaceRole();
       spaceRole.space_id = space.space_id;
-      spaceRole.role_name = '개설자';
-      spaceRole.authority = true;
-      const admin_role = await this.spaceRoleRepository.save(spaceRole);
+      spaceRole.role_name = role.role_name;
+      spaceRole.authority = role.authority === '관리자';
+      await this.spaceRoleRepository.save(spaceRole);
+    }
 
-      // 개설자 participation 에 추가
-      const participation = new Participation();
-      participation.space_id = space.space_id;
-      participation.user_id = req.user.user_id;
-      participation.role = admin_role.role_id;
-      await this.participationRepository.save(participation);
-
-      // spaceRole 등록
-      for (const role of body.space_role) {
-        const spaceRole = new SpaceRole();
-        spaceRole.space_id = space.space_id;
-        spaceRole.role_name = role.role_name;
-        spaceRole.authority = role.authority === '관리자';
-        await this.spaceRoleRepository.save(spaceRole);
-      }
-    });
+    return createSpace;
   }
 
   // space 삭제
-  async deleteSpace(@Req() req, space_id: string): Promise<void> {
+  async deleteSpace(@Req() req, space_id: string): Promise<Space> {
     const space = await this.findSpaceById(Number(space_id));
     if (space) {
       // 개설자인지 판별
       if (req.user.user_id === space.admin) {
         space.removed = true;
-        await this.spaceRepository.save(space);
+        return await this.spaceRepository.save(space);
       } else {
         // 개설자가 아니면 삭제 불가
         throw new ForbiddenException();
@@ -97,7 +102,11 @@ export class SpaceService {
   }
 
   // space 참여
-  async participate(@Body() body, @Req() req, space_id: string) {
+  async participate(
+    @Body() body,
+    @Req() req,
+    space_id: string,
+  ): Promise<Participation> {
     const participation = new Participation();
     participation.user_id = req.user.user_id;
     participation.space_id = Number(space_id);
@@ -122,11 +131,11 @@ export class SpaceService {
       } else throw new BadRequestException();
     } else throw new BadRequestException(); // 없는 space 참여 시도거나 없는 spaceRole 로 참여 시도
 
-    await this.participationRepository.save(participation);
+    return await this.participationRepository.save(participation);
   }
 
   // spaceRole 삭제
-  async deleteSpaceRole(@Req() req, role_id: string) {
+  async deleteSpaceRole(@Req() req, role_id: string): Promise<SpaceRole> {
     const deleteSpaceRole = await this.findSpaceRoleById(Number(role_id));
 
     if (deleteSpaceRole) {
@@ -141,7 +150,7 @@ export class SpaceService {
       const spaceRole = await this.findSpaceRoleById(participation.role);
       if (spaceRole.authority) {
         deleteSpaceRole.removed = true;
-        await this.spaceRoleRepository.save(deleteSpaceRole);
+        return await this.spaceRoleRepository.save(deleteSpaceRole);
       } else {
         // 관리자가 아니면 spaceRole 삭제 불가
         throw new ForbiddenException();

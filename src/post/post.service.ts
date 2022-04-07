@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   ForbiddenException,
-  Inject,
   Injectable,
   Req,
 } from '@nestjs/common';
@@ -50,6 +49,7 @@ export class PostService {
     });
   }
 
+  // id로 특정 spaceRole 찾기
   findSpaceRoleById(role_id: number) {
     return this.spaceRoleRepository.findOne({
       where: {
@@ -98,6 +98,7 @@ export class PostService {
     const posts = await this.postRepository.find({
       where: {
         space_id: space_id,
+        removed: false,
       },
     });
     const userRole = await this.findUserRole(space_id, req.user.user_id);
